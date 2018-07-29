@@ -124,7 +124,7 @@ void MainWindow::buildTree(const std::string &s)
 
             if(nString[0] >= '0' && nString[0] <= '9')
             {
-                if(list[1].length() <= 6)
+                if(list[0].length() <= 6)
                 {
                     nString = "charasign/" + nString;
                     list.push_front("charasign");
