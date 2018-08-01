@@ -379,6 +379,10 @@ void MainWindow::save()
         {
             QTextStream(&result) << "Download stopped. ";
         }
+        else if(p.getDownloadedCount() < p.getFileCount())
+        {
+            QTextStream(&result) << "Download error, try checking your connection. ";
+        }
         else
         {
             QTextStream(&result) << "Download complete. ";

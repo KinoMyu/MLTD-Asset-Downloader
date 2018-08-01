@@ -27,7 +27,12 @@ void FileDownloader::run()
             res = curl_easy_perform(curl);
             curl_easy_cleanup(curl);
             fclose(fp);
+            if(res != CURLE_OK)
+            {
+                remove(path.c_str());
+                return;
+            }
+            p->incrementDownloadedFileCount();
         }
-        p->incrementDownloadedFileCount();
     }
 }
