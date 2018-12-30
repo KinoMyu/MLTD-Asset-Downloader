@@ -41,24 +41,17 @@ void MainWindow::load()
 {
     std::string s;
 
-    ui->statusBar->showMessage("Connecting to TheaterGate API");
+    ui->statusBar->showMessage("Connecting to Matsurihime API");
 
     char curlerror[CURL_ERROR_SIZE];
-    if(openURL("https://otomestorm.anzu.work/metas/latests", s, curlerror) != CURLE_OK)
+    if(openURL("https://api.matsurihi.me/mltd/v1/version/latest", s, curlerror) != CURLE_OK)
     {
         ui->statusBar->showMessage("ERROR: Could not connect to TheaterGate API (" + QString(curlerror) + ")");
         return;
     }
     QJsonDocument jsonResponse = QJsonDocument::fromJson(QByteArray::fromStdString(s));
-    ver = std::to_string(jsonResponse["data"]["asset"]["version"].toInt());
-
-    if(openURL("https://otomestorm.anzu.work/metas/assets/" + ver, s, curlerror) != CURLE_OK)
-    {
-        ui->statusBar->showMessage("ERROR: Could not connect to TheaterGate API (" + QString(curlerror) + ")");
-        return;
-    }
-    jsonResponse = QJsonDocument::fromJson(QByteArray::fromStdString(s));
-    std::string path = jsonResponse["data"]["path"].toString().toStdString();
+    ver = std::to_string(jsonResponse["res"]["version"].toInt());
+    std::string path = jsonResponse["res"]["indexName"].toString().toStdString();
 
     ui->statusBar->showMessage("Downloading manifest file");
 
@@ -174,6 +167,31 @@ void MainWindow::buildTree(const std::string &s)
             {
                 nString = "tuna/" + nString;
                 list.push_front("tuna");
+            }
+            if(nString.substr(0, 9) == "coingasha")
+            {
+                nString = "coingasha/" + nString;
+                list.push_front("coingasha");
+            }
+            if(nString.substr(0, 8) == "tutorial")
+            {
+                nString = "tutorial/" + nString;
+                list.push_front("tutorial");
+            }
+            if(nString.substr(0, 8) == "yokosuka")
+            {
+                nString = "yokosuka/" + nString;
+                list.push_front("yokosuka");
+            }
+            if(nString.substr(0, 9) == "selection")
+            {
+                nString = "selection/" + nString;
+                list.push_front("selection");
+            }
+            if(nString.substr(0, 16) == "costumesalesinfo")
+            {
+                nString = "costumesalesinfo/" + nString;
+                list.push_front("costumesalesinfo");
             }
             addToTree(list, ui->assetTree);
             filename_to_hash[nString] = hName;
