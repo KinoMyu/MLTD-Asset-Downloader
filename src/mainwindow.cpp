@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->loadButton, SIGNAL(clicked(bool)), this, SLOT(load()));
     connect(ui->addButton, SIGNAL(clicked(bool)), this, SLOT(addToList()));
     connect(ui->listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(removeFromList(QListWidgetItem*)));
+    connect(ui->clearButton, SIGNAL(clicked(bool)), this, SLOT(clearList()));
     connect(ui->filterBox, SIGNAL(returnPressed()), this, SLOT(filter()));
     connect(ui->searchBox, SIGNAL(returnPressed()), this, SLOT(search()));
 
@@ -46,7 +47,7 @@ void MainWindow::load()
     char curlerror[CURL_ERROR_SIZE];
     if(openURL("https://api.matsurihi.me/mltd/v1/version/latest", s, curlerror) != CURLE_OK)
     {
-        ui->statusBar->showMessage("ERROR: Could not connect to TheaterGate API (" + QString(curlerror) + ")");
+        ui->statusBar->showMessage("ERROR: Could not connect to Matsurihime API (" + QString(curlerror) + ")");
         return;
     }
     QJsonDocument jsonResponse = QJsonDocument::fromJson(QByteArray::fromStdString(s));
@@ -75,6 +76,74 @@ void MainWindow::load()
     ui->assetTree->sortItems(0, Qt::AscendingOrder);
     setUpdatesEnabled(true);
     ui->statusBar->showMessage("Successfully loaded");
+}
+
+void MainWindow::filterPath(std::string& nString)
+{
+    if(nString[0] >= '0' && nString[0] <= '9')
+    {
+        size_t p = nString.find_first_of('_');
+        if(p > 6 && p != std::string::npos)
+        {
+            nString = "characard/" + nString;
+        }
+        else
+        {
+            nString = "charasign/" + nString;
+        }
+    }
+    if(nString.substr(0, 4) == "blog")
+    {
+        nString = "blog/" + nString;
+    }
+    if(nString.substr(0, 4) == "ex4c")
+    {
+        nString = "4koma/" + nString;
+    }
+    if(nString.substr(0, 4) == "exwb")
+    {
+        nString = "whiteboard/" + nString;
+    }
+    if(nString.substr(0, 4) == "room")
+    {
+        nString = "room/" + nString;
+    }
+    if(nString.substr(0, 5) == "gasha")
+    {
+        nString = "gasha/" + nString;
+    }
+    if(nString.substr(0, 5) == "stage")
+    {
+        nString = "stage/" + nString;
+    }
+    if(nString.substr(0, 5) == "event")
+    {
+        nString = "event/" + nString;
+    }
+    if(nString.substr(0, 4) == "tuna")
+    {
+        nString = "tuna/" + nString;
+    }
+    if(nString.substr(0, 9) == "coingasha")
+    {
+        nString = "coingasha/" + nString;
+    }
+    if(nString.substr(0, 8) == "tutorial")
+    {
+        nString = "tutorial/" + nString;
+    }
+    if(nString.substr(0, 8) == "yokosuka")
+    {
+        nString = "yokosuka/" + nString;
+    }
+    if(nString.substr(0, 9) == "selection")
+    {
+        nString = "selection/" + nString;
+    }
+    if(nString.substr(0, 16) == "costumesalesinfo")
+    {
+        nString = "costumesalesinfo/" + nString;
+    }
 }
 
 void MainWindow::buildTree(const std::string &s)
@@ -112,87 +181,11 @@ void MainWindow::buildTree(const std::string &s)
             std::string hName(nSize, ' ');
             ss.read(&hName[0], nSize);
 
+            filterPath(nString);
+
             std::replace(nString.begin(), nString.end(), '_', '/');
             std::deque<std::string> list = split(nString, '/');
 
-            if(nString[0] >= '0' && nString[0] <= '9')
-            {
-                if(list[0].length() <= 6)
-                {
-                    nString = "charasign/" + nString;
-                    list.push_front("charasign");
-                }
-                else
-                {
-                    nString = "characard/" + nString;
-                    list.push_front("characard");
-                }
-            }
-            if(nString.substr(0, 4) == "blog")
-            {
-                nString = "blog/" + nString;
-                list.push_front("blog");
-            }
-            if(nString.substr(0, 4) == "ex4c")
-            {
-                nString = "4koma/" + nString;
-                list.push_front("4koma");
-            }
-            if(nString.substr(0, 4) == "exwb")
-            {
-                nString = "whiteboard/" + nString;
-                list.push_front("whiteboard");
-            }
-            if(nString.substr(0, 4) == "room")
-            {
-                nString = "room/" + nString;
-                list.push_front("room");
-            }
-            if(nString.substr(0, 5) == "gasha")
-            {
-                nString = "gasha/" + nString;
-                list.push_front("gasha");
-            }
-            if(nString.substr(0, 5) == "stage")
-            {
-                nString = "stage/" + nString;
-                list.push_front("stage");
-            }
-            if(nString.substr(0, 5) == "event")
-            {
-                nString = "event/" + nString;
-                list.push_front("event");
-            }
-            if(nString.substr(0, 4) == "tuna")
-            {
-                nString = "tuna/" + nString;
-                list.push_front("tuna");
-            }
-            if(nString.substr(0, 9) == "coingasha")
-            {
-                nString = "coingasha/" + nString;
-                list.push_front("coingasha");
-            }
-            if(nString.substr(0, 8) == "tutorial")
-            {
-                nString = "tutorial/" + nString;
-                list.push_front("tutorial");
-            }
-            if(nString.substr(0, 8) == "yokosuka")
-            {
-                nString = "yokosuka/" + nString;
-                list.push_front("yokosuka");
-            }
-            if(nString.substr(0, 9) == "selection")
-            {
-                nString = "selection/" + nString;
-                list.push_front("selection");
-            }
-            if(nString.substr(0, 16) == "costumesalesinfo")
-            {
-                nString = "costumesalesinfo/" + nString;
-                list.push_front("costumesalesinfo");
-            }
             addToTree(list, ui->assetTree);
             filename_to_hash[nString] = hName;
         }
@@ -260,6 +253,11 @@ void MainWindow::addToList()
             ui->listWidget->addItem(path);
         }
     }
+}
+
+void MainWindow::clearList()
+{
+    ui->listWidget->clear();
 }
 
 void MainWindow::removeFromList(QListWidgetItem *listitem)

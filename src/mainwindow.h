@@ -23,6 +23,7 @@ public:
 private slots:
     void load();
     void addToList();
+    void clearList();
     void removeFromList(QListWidgetItem *listitem);
     void filter();
     void search();
@@ -30,6 +31,7 @@ private slots:
     void stop();
 
 private:
+    void filterPath(std::string& nString);
     void addToTree(std::deque<std::string> filename, QTreeWidget *parent);
     void addToSubTree(std::deque<std::string> &filename, std::string& built_path, QTreeWidgetItem *parent);
     void buildTree(const std::string& s);
