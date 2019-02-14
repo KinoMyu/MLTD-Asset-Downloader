@@ -7,6 +7,7 @@
 #include <map>
 #include <deque>
 #include <thread>
+#include <unordered_set>
 
 namespace Ui {
 class MainWindow;
@@ -29,8 +30,10 @@ private slots:
     void search();
     void save();
     void stop();
+    void diff();
 
 private:
+    void compareTree(const std::string& s);
     void filterPath(std::string& nString);
     void addToTree(std::deque<std::string> filename, QTreeWidget *parent);
     void addToSubTree(std::deque<std::string> &filename, std::string& built_path, QTreeWidgetItem *parent);

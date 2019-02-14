@@ -14,6 +14,7 @@
 #include "filedownloader.h"
 #include "utils.h"
 #include "../curl/curl.h"
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -26,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->addButton, SIGNAL(clicked(bool)), this, SLOT(addToList()));
     connect(ui->listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(removeFromList(QListWidgetItem*)));
     connect(ui->clearButton, SIGNAL(clicked(bool)), this, SLOT(clearList()));
+    connect(ui->diffButton, SIGNAL(clicked(bool)), this, SLOT(diff()));
     connect(ui->filterBox, SIGNAL(returnPressed()), this, SLOT(filter()));
     connect(ui->searchBox, SIGNAL(returnPressed()), this, SLOT(search()));
 
@@ -75,7 +77,121 @@ void MainWindow::load()
     }
     ui->assetTree->sortItems(0, Qt::AscendingOrder);
     setUpdatesEnabled(true);
-    ui->statusBar->showMessage("Successfully loaded");
+    ui->statusBar->showMessage("Successfully loaded asset version " + QString::fromStdString(ver));
+}
+
+void MainWindow::diff()
+{
+    std::string s;
+
+    ui->statusBar->showMessage("Connecting to Matsurihime API");
+
+    char curlerror[CURL_ERROR_SIZE];
+    if(openURL("https://api.matsurihi.me/mltd/v1/version/assets/" + ui->diffVersion->text().toStdString(), s, curlerror) != CURLE_OK)
+    {
+        ui->statusBar->showMessage("ERROR: Could not connect to Matsurihime API (" + QString(curlerror) + ")");
+        return;
+    }
+    QJsonDocument jsonResponse = QJsonDocument::fromJson(QByteArray::fromStdString(s));
+    if(jsonResponse["error"]["status"].toInt() == 404)
+    {
+        ui->statusBar->showMessage("ERROR: Could not find asset version specified");
+        return;
+    }
+    ver = std::to_string(jsonResponse["version"].toInt());
+    std::string path = jsonResponse["indexName"].toString().toStdString();
+
+    ui->statusBar->showMessage("Downloading manifest file");
+
+    if(openURL("https://td-assets.bn765.com/" + ver + "/production/" + "2017.3/" + "Android/" + path, s, curlerror) != CURLE_OK)
+    {
+        ui->statusBar->showMessage("ERROR: Could not connect to MLTD servers (" + QString(curlerror) + ")");
+        return;
+    }
+    if(s.substr(0, 5) == "<?xml")
+    {
+        ui->statusBar->showMessage("ERROR: Asset version is too old to diff");
+        return;
+    }
+
+    ui->statusBar->showMessage("Diffing...");
+    setUpdatesEnabled(false);
+    compareTree(s);
+    setUpdatesEnabled(true);
+
+    ui->statusBar->showMessage("New items will be highlighted in yellow");
+}
+
+void MainWindow::compareTree(const std::string& s)
+{
+    std::unordered_set<std::string> unseenitems;
+    unseenitems.reserve(tree.size());
+    for(auto item : tree)
+    {
+        unseenitems.insert(item.first);
+        if(item.second != nullptr)
+        {
+            item.second->setBackgroundColor(0, QColor(255, 255, 255, 255));
+        }
+    }
+    std::stringstream ss(s);
+    ss.ignore();
+    while(!ss.eof())
+    {
+        int magic_byte = ss.get();
+        ss.ignore();
+
+        if(magic_byte != 0xCE)
+        {
+            ss.ignore();
+            magic_byte = ss.get();
+            if(ss.eof())
+            {
+                break;
+            }
+            if(magic_byte == 0xD9)
+            {
+                ss.ignore();
+            }
+
+            std::string nString;
+            std::getline(ss, nString, (char)0x93);
+            ss.ignore();
+
+            int nSize = ss.get();
+            std::string hString(nSize, ' ');
+            ss.read(&hString[0], nSize);
+            ss.ignore();
+
+            nSize = ss.get();
+            std::string hName(nSize, ' ');
+            ss.read(&hName[0], nSize);
+
+            filterPath(nString);
+
+            std::replace(nString.begin(), nString.end(), '_', '/');
+            std::deque<std::string> list = split(nString, '/');
+
+            auto it = unseenitems.find(nString);
+            if(it != unseenitems.end())
+            {
+                unseenitems.erase(it);
+            }
+        }
+    }
+    for(auto name : unseenitems)
+    {
+        auto it = filename_to_hash.find(name);
+        if(it != filename_to_hash.end())
+        {
+            QTreeWidgetItem* node = tree[name];
+            while(node != nullptr)
+            {
+                node->setBackgroundColor(0, QColor(255, 255, 0, 100));
+                node = node->parent();
+            }
+        }
+    }
 }
 
 void MainWindow::filterPath(std::string& nString)
