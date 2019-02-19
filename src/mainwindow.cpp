@@ -98,7 +98,7 @@ void MainWindow::diff()
         ui->statusBar->showMessage("ERROR: Could not find asset version specified");
         return;
     }
-    ver = std::to_string(jsonResponse["version"].toInt());
+    std::string ver = std::to_string(jsonResponse["version"].toInt());
     std::string path = jsonResponse["indexName"].toString().toStdString();
 
     ui->statusBar->showMessage("Downloading manifest file");
