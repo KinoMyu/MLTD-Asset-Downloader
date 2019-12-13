@@ -58,7 +58,7 @@ void MainWindow::load()
 
     ui->statusBar->showMessage("Downloading manifest file");
 
-    if(openURL("https://td-assets.bn765.com/" + ver + "/production/" + "2017.3/" + "Android/" + path, s, curlerror) != CURLE_OK)
+    if(openURL("https://td-assets.bn765.com/" + ver + "/production/" + ui->unityVer->text().toStdString() + "/Android/" + path, s, curlerror) != CURLE_OK)
     {
         ui->statusBar->showMessage("ERROR: Could not connect to MLTD servers (" + QString(curlerror) + ")");
         return;
@@ -103,7 +103,7 @@ void MainWindow::diff()
 
     ui->statusBar->showMessage("Downloading manifest file");
 
-    if(openURL("https://td-assets.bn765.com/" + ver + "/production/" + "2017.3/" + "Android/" + path, s, curlerror) != CURLE_OK)
+    if(openURL("https://td-assets.bn765.com/" + ver + "/production/" + ui->unityVer->text().toStdString() + "/Android/" + path, s, curlerror) != CURLE_OK)
     {
         ui->statusBar->showMessage("ERROR: Could not connect to MLTD servers (" + QString(curlerror) + ")");
         return;
@@ -235,6 +235,10 @@ void MainWindow::filterPath(std::string& nString)
     if(nString.substr(0, 5) == "event")
     {
         nString = "event/" + nString;
+    }
+    if(nString.substr(0, 6) == "salmon")
+    {
+        nString = "salmon/" + nString;
     }
     if(nString.substr(0, 4) == "tuna")
     {
