@@ -53,8 +53,8 @@ void MainWindow::load()
         return;
     }
     QJsonDocument jsonResponse = QJsonDocument::fromJson(QByteArray::fromStdString(s));
-    ver = std::to_string(jsonResponse["res"]["version"].toInt());
-    std::string path = jsonResponse["res"]["indexName"].toString().toStdString();
+    ver = std::to_string(jsonResponse.object().take("res").toObject().take("version").toInt());
+    std::string path = jsonResponse.object().take("res").toObject().take("indexName").toString().toStdString();
 
     ui->statusBar->showMessage("Downloading manifest file");
 
@@ -77,6 +77,7 @@ void MainWindow::load()
     }
     ui->assetTree->sortItems(0, Qt::AscendingOrder);
     setUpdatesEnabled(true);
+    unity_ver = ui->unityVer->text().toStdString();
     ui->statusBar->showMessage("Successfully loaded asset version " + QString::fromStdString(ver));
 }
 
@@ -93,13 +94,13 @@ void MainWindow::diff()
         return;
     }
     QJsonDocument jsonResponse = QJsonDocument::fromJson(QByteArray::fromStdString(s));
-    if(jsonResponse["error"]["status"].toInt() == 404)
+    if(jsonResponse.object().take("error").toObject().take("status").toInt() == 404)
     {
         ui->statusBar->showMessage("ERROR: Could not find asset version specified");
         return;
     }
-    std::string ver = std::to_string(jsonResponse["version"].toInt());
-    std::string path = jsonResponse["indexName"].toString().toStdString();
+    std::string ver = std::to_string(jsonResponse.object().take("version").toInt());
+    std::string path = jsonResponse.object().take("indexName").toString().toStdString();
 
     ui->statusBar->showMessage("Downloading manifest file");
 
@@ -491,7 +492,7 @@ void MainWindow::save()
                     QString absolute_folder_path = relative_folder_path.filePath(root_dir + "/" + relative_folder_path.path());
                     relative_folder_path.mkpath(absolute_folder_path);
 
-                    std::string url = "https://td-assets.bn765.com/" + ver + "/production/" + "2017.3/" + "Android/" + it->second;
+                    std::string url = "https://td-assets.bn765.com/" + ver + "/production/" + unity_ver + "/Android/" + it->second;
                     std::string full_path = relative_folder_path.filePath(root_dir + "/" + relative_path).toLocal8Bit().toStdString();
 
                     FileDownloader* download_task = new FileDownloader(url, full_path, &p);
