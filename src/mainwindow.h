@@ -40,7 +40,7 @@ private:
     void buildTree(const std::string& s);
 
     Ui::MainWindow *ui;
-    std::string ver;
+    std::string ver, unity_ver;
     std::deque<std::string> download_list;
     std::map<std::string, QTreeWidgetItem*> tree;
     std::map<std::string, std::string> filename_to_hash;
